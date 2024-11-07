@@ -42,23 +42,26 @@ VitalData = lambda nothing:Data.Get("text","touchPadValue")
 
 class AppSetup:
     def __init__(self,filePath):
+        import SeniorOS.apps.Logo as Logo
+        self.sl = Logo
+        #logo.GetLogo("/SeniorOS/data/Logo.sros").Logo(1)
+        self.logo = "Normal"
         self.filePath=filePath
+    def SetLogo(self,logo:bytearray):
+        self.logo=logo
     def Main(self):
         #安装文件格式:
         #------------------------------(安装example.py)
-        # #bytearray(#此处为LOGO 编码)
         # #示例应用(名称)
         # #example.py
         # //以下都是文件数据
         #---------------------------------------------
-        with open(self.filePath,"r") as app:
-            app.seek(0)
-            with open("/SeniorOS/data/Logo.sros","a") as logo:
-                logo.write(app.readline().strip().strip("\n"))
-            Data.Write("list",Data.Get("list","localAppName").append(app.readline().strip().strip("\n")))
-            with open("/SeniorOS/apps/%s"%(app.readline().strip().strip("\n")),"w") as appdata:
-                if app.read(512) == "":return 0
-                appdata.write(app.read())
+        with open(self.filePath,"r") as f:
+            f.seek(0)
+            Data.Write("list","localAppName",Data.Get("list","localAppName").append((f.readline()).strip("\n").strip("\r")))#写入应用名称
+            with open("/SeniorOS/apps/{}".format(f.readline().strip("\n").strip("\r")),"w") as f2:f2.write(f.read())#写入文件数据
+            if self.logo!="Normal":self.logo = self.sl.GetLogo("/SeniorOS/data/Logo.sros").Logo(1)
+            with open("/SeniorOS/data/Logo.sros","a+") as f2:f2.write(self.logo)
         return
 # Core.AppSetup("/SeniorOS/download/test.spk").setup()
     

@@ -75,6 +75,16 @@ class picture:
     #DiskManager_images
     Flash = img.Logo(3)
     EXIT = img.Logo(5)
+'''
+class FileReader:
+    def __init__(self, path):
+        self.path = path
+    def readFile(self):
+        with open(self.path, "r") as f:
+            f.seek(0)
+            while not button_a.is_pressed():
+                oled.fill(0)
+'''
 class Textreader:
     def __init__(self, text, splitCfg="\n"):
         self.text = text.split(splitCfg)

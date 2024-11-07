@@ -4,8 +4,6 @@
 # radient.py - by LP_OVER
 import socket
 import gc
-class CodeError(Exception):
-    pass
 def GetToFile(url,file,timeout=2,bufferSize=1024):#此处file是对象
     if not url.startswith("http://"):url = "http://" + url
     print("访问:"+url)
@@ -28,8 +26,7 @@ def GetToFile(url,file,timeout=2,bufferSize=1024):#此处file是对象
             StatusCode = data.decode().split('\r\n')[0].split(' ')[1]
             try:file.write(data.decode().split("\r\n\r\n")[1])
             except:pass
-        elif StatusCode == "200":
-            file.write(data.decode())
+        elif StatusCode == "200":file.write(data.decode())
         elif StatusCode != "" and len(StatusCode) > 0:
             raise CodeError("status_code is {}".format(StatusCode))
         del data
@@ -43,8 +40,7 @@ def NormalGet(url,timeout=2):
     print("目标"+url_parse[2])
     host = url_parse[2]
     path = '/'
-    if len(url_parse) > 3:
-        path = '/' + '/'.join(url_parse[3:])
+    if len(url_parse) > 3:path = '/' + '/'.join(url_parse[3:])
     s = socket.socket(socket.AF_INET, socket.SOCK_STREAM)
     s.connect((host, 80))
     s.settimeout(timeout)
@@ -68,9 +64,7 @@ def ParseResponse(response):
 def Get(url, timeout=2):
     response = NormalGet(url, timeout)
     status_code, body = ParseResponse(response)
-    if status_code == "308" or status_code == "301" or status_code == "302":
-        print("重定向找我干嘛")
-    else:
-        CodeError("status_code is {}".format(status_code))
+    if status_code == "308" or status_code == "301" or status_code == "302":print("重定向找我干嘛")
+    else:OSError("status_code is {}".format(status_code))
     return status_code, body
     # [0]是状态码 , [1]是响应体 , 建议放变量里面

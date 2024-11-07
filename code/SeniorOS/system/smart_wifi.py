@@ -26,8 +26,7 @@ def main():
         while True:
             h = client_sock.readline()
             returnText += h.decode('utf-8')
-            if h == b'' or h == b'\r\n':
-                break
+            if h == b'' or h == b'\r\n':break
         if returnText.startswith('GET /?ssid='):
             returnText=returnText.split("/")[1]
             returnText=returnText[:-5]
@@ -47,14 +46,10 @@ def main():
             del s,ap,client_sock,client_addr,ssid,pwd,returnText,h
             gc.collect()
             return(ssid,pwd)
-        client_sock.write(b"""
-                        HTTP/1.1 200 OK
-                        Content-Type: text/html
-                        Connection: close
-                        """)
-        client_sock.write(b'''
+        client_sock.write("HTTP/1.1 200 OK\nContent-Type: text/html\nConnection: close\n\n")
+        client_sock.write('''
                         <!DOCTYPE html>
-                        <html lang="en">
+                        <html lang="zh-cn">
                         <head>
                             <meta charset="UTF-8">
                             <meta name="viewport" content="width=device-width, initial-scale=1.0">
@@ -72,16 +67,16 @@ def main():
                         <body>
                             <div class="form-container">
                                 <form action="http://192.168.4.1" method="get">
-                                    <label for="ssid">WiFiSSID</label>
-                                    <input type="text" id="ssid" name="ssid" placeholder="Type your wifiSSID">
-                                    <input type="submit" value="Upload">
+                                    <label for="ssid">WiFi名称</label>
+                                    <input type="text" id="ssid" name="ssid" placeholder="输入您的WIFI名称">
+                                    <input type="submit" value="上传Wifi名称">
                                 </form>
                                 <form action="http://192.168.4.1" method="get">
-                                    <label for="pwd">WifiPassword</label>
-                                    <input type="text" id="pwd" name="pwd" placeholder="Type your wifiPassword">
-                                    <input type="submit" value="Upload">
+                                    <label for="pwd">Wifi密码</label>
+                                    <input type="text" id="pwd" name="pwd" placeholder="输入您的WiFi密码">
+                                    <input type="submit" value="上传WiFi密码">
                                 </form>
-                                <a href="http://192.168.4.1/exit">Exit</a>
+                                <a href="http://192.168.4.1/exit">退出并连接</a>
                             </div>
                         </body>
                         </html>

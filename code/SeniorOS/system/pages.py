@@ -83,8 +83,7 @@ def HS_Ram():
         oled.DispChar(f"内存可用:{str(gc.mem_free())} Bytes",0,16)
         oled.DispChar("触摸键释放内存",0,32)
         oled.show()
-        if eval("[/GetButtonExpr('python')/]"):
-            Collect()
+        if eval("[/GetButtonExpr('python')/]"):Collect()
     return 0
 def HS_Flash():
     fileSystemFree=os.statvfs("/")[3] * os.statvfs("/")[1]
@@ -245,15 +244,15 @@ def WaitMod(func):
         eval("func",{"func":func})
         oled.DispChar(eval("[/Language('加载成功')/]"), 5, 45, 1)
         oled.show()
+        time.sleep(1)
         return True
     except:
         oled.DispChar(eval("[/Language('加载失败')/]"), 5, 45, 1)
         oled.show()
-def Collect():
-    WaitMod("Core.FullCollect()")
-
-def Time():
-    WaitMod("""ntptime.settime(8, Core.Data.Get("text", "timingServer"))""")
+        time.sleep(1)
+        return False
+def Collect():WaitMod("Core.FullCollect()")
+def Time():WaitMod("""ntptime.settime(8, Core.Data.Get("text", "timingServer"))""")
 
 def ConnectWiFiMode():
     mode = ['预配置选择','自动连接预配置','SmartWiFi']
@@ -270,8 +269,7 @@ def ConnectWiFiMode():
 def LoadWait(WhetherToQuit:Core.SharedVar.LoadQuit, text:str="None", fill:bool=False):
     if fill:oled.fill(0)
     while not WhetherToQuit:
-        if text != "None":
-            DayLight.Text(text, DayLight.AutoCenter(text), 28, 2)
+        if text != "None":DayLight.Text(text, DayLight.AutoCenter(text), 28, 2)
         DayLight.VastSea.SeniorMove.Line(0,63,0,63,0,63,128,63,False)
         DayLight.VastSea.SeniorMove.Line(0,63,128,63,128,63,128,63,False)
         oled.show()
@@ -290,8 +288,7 @@ def ShutDown():
     if options == 0:
         oled.poweroff()
         machine.deepsleep()
-    elif options == 1:
-        machine.reset()
+    elif options == 1:machine.reset()
     elif options == 2:
         import esp32
         oled.poweroff()
@@ -303,8 +300,7 @@ def ShutDown():
         return
 def WiFiConfig():
     IP,netmask,gateway,DNS = wifi.sta.ifconfig()
-    status = str(wifi.sta.status())
-    FTReader.Textreader('是否连接: ' + "是" if wifi.sta.isconnected() else "否" + "\n" + "状态码: "  + status + '\n' + 'IP: ' + IP +'\n' + 'Netmask: ' + netmask + '\n' + 'DNS: ' + DNS + '\n' + 'Gateway: ' + gateway).Main()
+    FTReader.Textreader('是否连接: ' + "是" if wifi.sta.isconnected() else "否" + "\n" + "状态码: "  + str(wifi.sta.status()) + '\n' + 'IP: ' + IP +'\n' + 'Netmask: ' + netmask + '\n' + 'DNS: ' + DNS + '\n' + 'Gateway: ' + gateway).Main()
 
 def DeviceID():
     oled.fill(0)

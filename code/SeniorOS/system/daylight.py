@@ -13,9 +13,7 @@ LogManager.Output("system/daylight.mpy", "INFO")
 def UITime(pages=True):
     h = str(Core.GetTime.Hour())
     m = str(Core.GetTime.Min())
-    return ('0%s'%(h) if not (bool(len(h)-1)) else h) + \
-             (':' if pages else "") + \
-            ('0%s'%(m) if not (bool(len(m)-1)) else m)
+    return ('0%s'%(h) if not (bool(len(h)-1)) else h)+(':' if pages else "")+('0%s'%(m) if not (bool(len(m)-1)) else m)
 
 GetCharWidth = lambda s: oled.DispChar(s, 0, 0, Colormode.noshow)[0][0] + int(len(s)/2)
 AutoCenter = lambda string: 64 - GetCharWidth(string) // 2
@@ -192,6 +190,24 @@ class VastSea:
             oled.DispChar(NewChar,0,0,mode=2,buffer=char2FB_FILL)
         if ToWidth > 0:
             NowW=GetCharWidth(char)
+            for _ in range(6):
+                if MODE == "rect":
+                    oled.rect(x,y,NowW,16,1)
+                    oled.blit(char1FB,sx,sy)
+                    oled.blit(char2FB,ToX,ToY)
+                    oled.show()
+                    oled.rect(x,y,NowW,16,0)
+                else:
+                    oled.blit(char1FB_FILL,sx,sy)
+                    oled.fill_rect(x,y,NowW,16,1)
+                    oled.blit(char2FB_FILL,ToX,ToY)
+                    oled.show()
+                    oled.fill_rect(x,y,NowW,16,0)
+                NowW+=(ToWidth-NowW)//2
+                x+=(ToX-x)//2
+                y+=(ToY-y)//2
+                time.sleep_ms(25)
+            '''
             if MODE == "rect":
                 for i in range(6):
                     oled.rect(x,y,NowW,16,1)
@@ -213,7 +229,7 @@ class VastSea:
                     NowW+=(ToWidth-NowW)//2
                     x+=(ToX-x)//2
                     y+=(ToY-y)//2
-                    time.sleep_ms(25)
+                    time.sleep_ms(25)'''
         gc.collect()
         return
     @staticmethod   
@@ -224,10 +240,8 @@ class VastSea:
         return
     @staticmethod   
     def Transition(mode:bool = True):
-        if int(Core.Data.Get("text", "VastSeaSwitch")) == 1:
-            Animations.ClearFromLeftSide(mode)
-        else:
-            VastSea.Off()
+        if int(Core.Data.Get("text", "VastSeaSwitch")):Animations.ClearFromLeftSide(mode)
+        else:VastSea.Off()
         
     
     class SeniorMove:
@@ -283,8 +297,7 @@ class VastSea:
                     # 根据计算出的 currentX 和 currentY 更新位置
                     oled.fill(0)
                     # 是否自定义字体
-                    if font != None:
-                        oled.DispChar_font(font, text, int(currentX), int(currentY))
+                    if font != None:oled.DispChar_font(font, text, int(currentX), int(currentY))
                     oled.DispChar(text, int(currentX), int(currentY))
                     oled.show()
                 return True
@@ -306,10 +319,8 @@ class VastSea:
                     currentX2 = startX2 + (endX2 - startX2) * factor
                     currentY2 = startY2 + (endY2 - startY2) * factor
                     # 根据计算出的 currentX、currentY、currentX2 和 currentY2 更新线条的位置
-                    if fill:
-                        oled.fill(0)
-                    else:
-                        oled.fill_rect(startX, startY, 128, 3, 0)
+                    if fill:oled.fill(0)
+                    else:oled.fill_rect(startX, startY, 128, 3, 0)
                     oled.line(int(currentX), int(currentY), int(currentX2), int(currentY2), 1)
                     oled.show()
             else:
@@ -324,27 +335,24 @@ class VastSea:
                     elapsedTime += timer
                     t = elapsedTime / speed
                     factor = -(math.cos(math.pi * t) - 1) / 2
-                    currentX= startX + (endX - startX) * factor
+                    currentX = startX + (endX - startX) * factor
                     currentY = startY + (endY - startY) * factor
                     # 根据计算出的 current_x 和 current_y 更新位置
                     oled.Bitmap(int(currentX), int(currentY), bitMap, w, h, 1)
                     oled.show()
                     oled.Bitmap(int(currentX), int(currentY), bitMap, w, h, 0)
-            else:
-                VastSea.Off()
+            else:VastSea.Off()
             
 def UITools():
     if Core.Data.Get("text", "lightMode") == "1":oled.invert(1)
     oled.contrast(int(Core.Data.Get("text", "luminance")))
 
 def LightModeSet():
-    mode = [eval("[/Language('关闭')/]"),
-            eval("[/Language('开启')/]")]
+    mode = [eval("[/Language('关闭')/]"),eval("[/Language('开启')/]")]
     while not button_a.is_pressed():
         oled.fill(0)
         UITools()
         App.Style2(eval("[/Language('日光模式')/]"))
-        
         get = int(Core.Data.Get("text", "lightMode"))
         oled.DispChar(mode[get], 5, 18, 1)
         oled.show()
@@ -356,17 +364,15 @@ def LuminanceSet():
     oled.contrast(luminance)
     UITools()
     while not button_a.is_pressed():
-        oled.contrast(luminance)
         oled.fill(0)
         App.Style2(eval("[/Language('亮度调节')/]"))
         oled.DispChar(eval("[/Language('当前值')/]") + str(luminance), 5, 18, 1)
         oled.show()
         if eval("[/GetButtonExpr('on')/]"):
             luminance = 255 if luminance > 250 else luminance + 5
-            oled.contrast(luminance)
         if eval("[/GetButtonExpr('py')/]"):
             luminance = 0 if luminance - 5 < 0 else luminance - 5
-            oled.contrast(luminance)
+        oled.contrast(luminance)
     oled.contrast(luminance)
     Core.Data.Write("text",'luminance',str(luminance))
     return luminance
@@ -380,10 +386,9 @@ def TouchPadValueSet():
         oled.show()
         if eval("[/GetButtonExpr('on')/]"):
             sensitivity = (sensitivity + 5 if sensitivity + 5 <= 800 else 800)
-            TouchPad.config(sensitivity)
         if eval("[/GetButtonExpr('py')/]"):
             sensitivity = (sensitivity - 5 if sensitivity - 5 >= -100 else -100)
-            TouchPad.config(sensitivity)
+        TouchPad.config(sensitivity)
     TouchPad.config(sensitivity)
     return Core.Data.Write("text","touchPadValue",sensitivity)
 
