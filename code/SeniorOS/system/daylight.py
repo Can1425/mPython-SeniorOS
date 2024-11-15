@@ -5,7 +5,7 @@ import time
 from SeniorOS.lib.devlib import *
 import SeniorOS.lib.log_manager as LogManager
 import SeniorOS.lib.pages_manager as PagesManager
-from SeniorOS.system.ftreader import Animations
+#from SeniorOS.system.ftreader import Animations
 import framebuf
 LogManager.Output("system/daylight.mpy", "INFO")
 
@@ -127,19 +127,16 @@ class Select:
                 if eval("[/GetButtonExpr('on')/]"):
                     if listNum < maxdispcontextindex:
                         VastSea.SelsetBoxMove(x, 16+16*(listNum-start),displayItems[listNum - start],
-                                              x,16+16*(listNum-start+1),displayItems[listNum - start+1],
-                                              MODE="fill_rect")
+                                              x,16+16*(listNum-start+1),displayItems[listNum - start+1])
                         listNum += 1
                         break
                 elif eval("[/GetButtonExpr('py')/]"):
                     if listNum > 0:
                         VastSea.SelsetBoxMove(x,16+16*(listNum-start),displayItems[listNum - start],
-                                              x,16+16*(listNum-start-1),displayItems[listNum - start-1],
-                                              MODE="fill_rect")
+                                              x,16+16*(listNum-start-1),displayItems[listNum - start-1])
                         listNum -= 1
                         break
-                elif eval("[/GetButtonExpr('th')/]"):
-                    return listNum
+                elif eval("[/GetButtonExpr('th')/]"):return listNum
                 elif button_a.is_pressed():return None
 
 ListOptions = Select.Style4
@@ -168,68 +165,31 @@ class VastSea:
                 VastSea.Transition(False)
             VastSea.Transition(False)
     @staticmethod
-    def SelsetBoxMove(x,y,char,ToX,ToY,NewChar,MODE="rect"):
+    def SelsetBoxMove(x,y,char,ToX,ToY,NewChar):
         sx=x;sy=y
         NowWidth = GetCharWidth(char)
         ToWidth = GetCharWidth(NewChar)
         gc.collect()
-        if gc.mem_free() < (5 * (16 * NowWidth + 16 * ToWidth)):
-            print("内存不足,停止运行!")
-            return
-        if MODE == "rect":
-            char1FB=framebuf.FrameBuffer(bytearray(16*NowWidth),NowWidth,16,framebuf.MONO_VLSB)
-            char2FB=framebuf.FrameBuffer(bytearray(16*ToWidth),ToWidth,16,framebuf.MONO_VLSB)
-            oled.DispChar(char,0,0,buffer=char1FB)
-            oled.DispChar(NewChar,0,0,buffer=char2FB)
-        else:
-            char1FB_FILL=framebuf.FrameBuffer(bytearray(16*NowWidth),NowWidth,16,framebuf.MONO_VLSB)
-            char2FB_FILL=framebuf.FrameBuffer(bytearray(16*ToWidth),ToWidth,16,framebuf.MONO_VLSB)
-            char1FB_FILL.fill(1)
-            char2FB_FILL.fill(1)
-            oled.DispChar(char,0,0,mode=2,buffer=char1FB_FILL)
-            oled.DispChar(NewChar,0,0,mode=2,buffer=char2FB_FILL)
+        if gc.mem_free() < (5 * (16 * NowWidth + 16 * ToWidth)):return
+        char1FB_FILL=framebuf.FrameBuffer(bytearray(16*NowWidth),NowWidth,16,framebuf.MONO_VLSB)
+        char2FB_FILL=framebuf.FrameBuffer(bytearray(16*ToWidth),ToWidth,16,framebuf.MONO_VLSB)
+        char1FB_FILL.fill(1)
+        char2FB_FILL.fill(1)
+        oled.DispChar(char,0,0,mode=2,buffer=char1FB_FILL)
+        oled.DispChar(NewChar,0,0,mode=2,buffer=char2FB_FILL)
         if ToWidth > 0:
             NowW=GetCharWidth(char)
             for _ in range(6):
-                if MODE == "rect":
-                    oled.rect(x,y,NowW,16,1)
-                    oled.blit(char1FB,sx,sy)
-                    oled.blit(char2FB,ToX,ToY)
-                    oled.show()
-                    oled.rect(x,y,NowW,16,0)
-                else:
-                    oled.blit(char1FB_FILL,sx,sy)
-                    oled.fill_rect(x,y,NowW,16,1)
-                    oled.blit(char2FB_FILL,ToX,ToY)
-                    oled.show()
-                    oled.fill_rect(x,y,NowW,16,0)
+                oled.blit(char1FB_FILL,sx,sy)
+                oled.fill_rect(x,y,NowW,16,1)
+                oled.blit(char2FB_FILL,ToX,ToY)
+                oled.show()
+                oled.fill_rect(x,y,NowW,16,0)
                 NowW+=(ToWidth-NowW)//2
                 x+=(ToX-x)//2
                 y+=(ToY-y)//2
                 time.sleep_ms(25)
-            '''
-            if MODE == "rect":
-                for i in range(6):
-                    oled.rect(x,y,NowW,16,1)
-                    oled.blit(char1FB,sx,sy)
-                    oled.blit(char2FB,ToX,ToY)
-                    oled.show()
-                    oled.rect(x,y,NowW,16,1)
-                    NowW+=(ToWidth-NowW)//2
-                    x+=(ToX-x)//2
-                    y+=(ToY-y)//2
-                    time.sleep_ms(25)
-            else:
-                for i in range(6):
-                    oled.blit(char1FB_FILL,sx,sy)
-                    oled.fill_rect(x,y,NowW,16,1)
-                    oled.blit(char2FB_FILL,ToX,ToY)
-                    oled.show()
-                    oled.fill_rect(x,y,NowW,16,0)
-                    NowW+=(ToWidth-NowW)//2
-                    x+=(ToX-x)//2
-                    y+=(ToY-y)//2
-                    time.sleep_ms(25)'''
+        del char1FB_FILL, char2FB_FILL
         gc.collect()
         return
     @staticmethod   
@@ -240,6 +200,7 @@ class VastSea:
         return
     @staticmethod   
     def Transition(mode:bool = True):
+        from SeniorOS.system.ftreader import Animations
         if int(Core.Data.Get("text", "VastSeaSwitch")):Animations.ClearFromLeftSide(mode)
         else:VastSea.Off()
         

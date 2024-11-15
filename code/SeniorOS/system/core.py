@@ -177,4 +177,3 @@ def Tree(path="/",prt=print,_tabs=0):
 ListState=lambda dispContent,selectNum:"{}/{}".format(selectNum+1,len(dispContent))
 #def ListState(dispContent, selectNum):
 #    return "{}/{}".format(selectNum+1, len(dispContent))
-#    return (''.join([str(selectNum + 1),'/',str(len(dispContent))]))

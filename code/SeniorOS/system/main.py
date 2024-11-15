@@ -15,8 +15,7 @@ elif info == 1:
     net=wifi()
     net.sta.active(True)
     netscan=net.sta.scan()
-    def GetWifiCfg(num):
-        return str(netscan[num][0].decode('utf-8')).replace("\r","")
+    GetWifiCfg=lambda num: str(netscan[num][0].decode('utf-8')).replace("\r","")
     connect=False
     for i in wifilist[0]:
         for j in range(len(netscan)):
@@ -36,9 +35,9 @@ elif info == 1:
 elif info == 2:
     import SeniorOS.system.smart_wifi as SmartWifi
     SmartWifi.main()
-    del SmartWifi;gc.collect()
 del info;gc.collect()
 #-----------------
-returnData=Pages.Home()
-while not returnData:
-    returnData=Pages.Home()
+while True:Pages.Home()#注：Pages.Home实际上没有任何返回数据，直接循环即可
+#returnData=Pages.Home()
+#while not returnData:
+#    returnData=Pages.Home()
