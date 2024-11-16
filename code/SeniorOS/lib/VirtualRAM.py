@@ -3,7 +3,7 @@
 # file, You can obtain one at https://mozilla.org/MPL/2.0/.
 # DiskRam - by LP_OVER
 # 参与的贡献者:emofalling
-# DiskRam - v1.0
+# DiskRam - v1.0.2
 import re,struct
 import os,gc
 class DiskRamError(OSError):
@@ -16,6 +16,7 @@ class DiskRam:
                          "int":'q',   # long long, 8 bytes
                          "float":'d', # double   , 8 bytes
                          "str":'s',   # string   , - length,
+                         "byte":'y' #byte     , 1 byte
                         }
         self.SizeDict = {
                          "c": 1,   # char
@@ -32,6 +33,7 @@ class DiskRam:
                          "f": 4,   # float
                          "d": 8,   # double
                          "s":-1,   # string
+                         "y":1,    #byte
                         }
         self.var={}
         self.pattern=re.compile(r"'(.*?)'")
@@ -60,7 +62,6 @@ class DiskRam:
                 size = ''
                 while True:
                     data = f.read(1)
-                    print(data)
                     if data == b'>':break
                     size += data.decode('ascii')
                 size = int(size)*self.SizeDict[typestr]
@@ -68,48 +69,55 @@ class DiskRam:
                 for i in range(size//self.SizeDict[typestr]):
                     if offset != None:
                         if i == offset:
-                            return struct.unpack(typestr,f.read(self.SizeDict[typestr]))[0]
-                    data.append(struct.unpack(typestr,f.read(self.SizeDict[typestr]))[0])
+                            if typestr == 'y':return f.read(self.SizeDict[typestr])
+                            else:return struct.unpack(typestr,f.read(self.SizeDict[typestr]))[0]
+                    if typestr == 'y':data.append(f.read(self.SizeDict[typestr]))
+                    else:data.append(struct.unpack(typestr,f.read(self.SizeDict[typestr]))[0])
                 return data
             else:
                 size = self.SizeDict[typestr]
                 raw = f.read(size)
-                return struct.unpack(typestr,raw)[0]
+                if typestr=='y':return raw
+                else:return struct.unpack(typestr,raw)[0]
     def SetItem(self, varclass, var, value, length=False):
         if varclass == "char":varclass = "str"
         f = self.file
         f.seek(0,2)
+        try:
+            typestr = self.TypeDict[varclass] 
+        except KeyError:
+            if length!= False:raise DiskRamError("SetItem:This data type is not supported by the DiskRam array")#by bing(((
+            else:raise DiskRamError("SetItem: Unknown Type")
         if length != False:
-            try:
-                typestr = self.TypeDict[varclass] 
-            except KeyError:
-                raise DiskRamError("SetItem:This data type is not supported by the DiskRam array")#by bing(((
             if typestr == 's':
                 data = ''
                 for i in range(length):data+=value[i]
                 self.SetItem("str",var,data)
-                return 0
-            self.var[var]=f.tell()
-            f.write(typestr.encode('ascii'))
-            f.write(("<%d>"%length).encode("ascii"))
-            for i in range(length):
-                try:f.write(struct.pack(typestr,value[i]))
-                except:f.write(struct.pack(typestr,0))
+            elif typestr == 'y':
+                self.var[var]=f.tell()
+                f.write(("y<%d>"%length).encode("ascii"))
+                for i in range(length):
+                    try:f.write(value[i])
+                    except:f.write(b'\x00')
+            else:
+                self.var[var]=f.tell()
+                f.write(typestr.encode('ascii'))
+                f.write(("<%d>"%length).encode("ascii"))
+                for i in range(length):
+                    try:f.write(struct.pack(typestr,value[i]))
+                    except:f.write(struct.pack(typestr,0))
         else:
-            try:
-                typestr = self.TypeDict[varclass]
-            except KeyError:
-                raise DiskRamError("SetItem: Unknown Type")
             self.var[var]=f.tell()
             f.write(typestr.encode('ascii'))
             if typestr == 's':
                 value = value.encode('utf-8')
                 f.write(struct.pack('I',len(value)))
                 f.write(value)
+            elif typestr == 'y':
+                f.write(value)#bytes
             else:
                 f.write(struct.pack(typestr,value))
             f.flush()
-        print(self.var)
     def Collect(self):
         gc.collect()
         f = self.file
@@ -162,13 +170,24 @@ class DiskRam:
         os.remove("tmp.ram")
         gc.collect()
         return 0
+    def Delete(self,var):
+        if var in self.var:
+            self.var.pop(var)
+            self.Collect()
+            return 0
+        else:
+            raise DiskRamError("Delete: Variable not found: Undefined")
+            
 
 if __name__ == "__main__":
     d = DiskRam("test.ram")
-    d.SetItem("int","a",5)
-    d.SetItem("int","c",[1,2,3,4,5],5)
-    d.SetItem("int","c",[5,4,3,2,1],5)
-    d.SetItem("int","a",16)
-    d.Collect()
-    print("a的值为:",d.GetItem("a"))
-    print("c[0]的值为:",d.GetItem("c",0))
+    d.SetItem("byte","a",[b"\x00",b"\x01",b"\x02",b"\x03",b"\x04"],5)
+    print(d.GetItem("a",3))
+    #d.SetItem("int","a",5)
+    #d.SetItem("int","c",[1,2,3,4,5],5)
+    #d.SetItem("int","c",[5,4,3,2,1],5)
+    #d.SetItem("int","a",16)
+    #d.Collect()
+    #d.Delete("a")
+    #print("a的值为:",d.GetItem("a"))
+    #print("c[0]的值为:",d.GetItem("c",0))

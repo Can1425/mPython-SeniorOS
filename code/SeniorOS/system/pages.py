@@ -1,45 +1,50 @@
 import gc
-import SeniorOS.system.daylight as DayLight;gc.collect()
+from SeniorOS.lib.devlib import *;gc.collect()
+import SeniorOS.system.DayLight as DayLight
 import SeniorOS.system.core as Core
 import SeniorOS.system.ftreader as FTReader
-import SeniorOS.system.radient as Radient ;gc.collect()
+import SeniorOS.system.radient as Radient
+import SeniorOS.lib.log_manager as LogManager
+import SeniorOS.lib.pages_manager as PagesManager
+gc.collect()
+import SeniorOS.lib.VirtualRAM as vRAM
 import ntptime
-from SeniorOS.lib.devlib import *;gc.collect()
 import time
 import machine
-import SeniorOS.lib.log_manager as LogManager
-import SeniorOS.lib.pages_manager as PagesManager;gc.collect()
 import _thread
-import os;gc.collect()
-
-source = "http://" + Core.Data.Get("text", "radienPluginsSource")
+ram = vRAM.DiskRam("vram.ram")
+ram.SetItem("str","source","http://%s"%Core.Data.Get("text", "radienPluginsSource"))
+#source = "http://" + Core.Data.Get("text", "radienPluginsSource")
 Log = LogManager.Log
 Log.Info("system/pages.mpy")
 wifi=wifi()
 
+def EquipmentPanel():
+    __import__("SeniorOS.system.HardwareSettings").EquipmentPanel()
+    gc.collect()
 def ConfigureWLAN(ssid, password):
+    logoImg = None
+    with open("/SeniorOS/data/SeniorOS.logo",'rb') as f:logoImg = f.read()
     oled.fill(0)
-    oled.Bitmap(16, 20, bytearray([0X00,0X00,0X00,0X00,0X00,0X00,0X00,0X00,0X00,0X00,0X00,0X00,0X00,0X00,0X00,0X00, 0X00,0X00,0X00,0X00,0X00,0X00,0X00,0X00,0X00,0X00,0X00,0X3C,0X00,0X00,0X00,0X30, 0X00,0X00,0X00,0X70,0X00,0X78,0X00,0X03,0XFE,0X00,0X00,0X00,0X70,0X00,0X00,0X03, 0XFE,0X03,0XFE,0X00,0X07,0XFC,0X00,0X00,0X00,0X30,0X00,0X00,0X07,0X8F,0X07,0XFE, 0X00,0X06,0X00,0X00,0X00,0X00,0X00,0X00,0X00,0X0E,0X03,0X86,0X00,0X00,0X06,0X00, 0X0E,0X03,0XE0,0X20,0X38,0X01,0X8C,0X01,0X8E,0X00,0X00,0X0E,0X00,0X3F,0X87,0XF8, 0X71,0XFE,0X0F,0X98,0X00,0XCE,0X00,0X00,0X0F,0X00,0X7B,0XC7,0XFC,0X71,0XFF,0X1F, 0X98,0X00,0XCE,0X00,0X00,0X07,0XF0,0X60,0XCE,0X0C,0X63,0X83,0X18,0X18,0X00,0XC7, 0XF0,0X00,0X03,0XFC,0XE0,0XCE,0X0C,0X63,0X03,0X38,0X18,0X00,0XC3,0XFC,0X00,0X00, 0X1C,0XFF,0XCE,0X0C,0X63,0X03,0X38,0X18,0X00,0XC0,0X1C,0X00,0X00,0X0C,0XFF,0XCC, 0X0C,0X67,0X03,0X30,0X18,0X00,0XC0,0X0C,0X00,0X00,0X0C,0XC0,0X0C,0X0C,0X67,0X03, 0X30,0X0C,0X01,0XC0,0X0C,0X00,0X00,0X1C,0XC0,0X0C,0X1C,0XE7,0X07,0X30,0X0E,0X03, 0X80,0X1C,0X00,0X00,0X3C,0XE0,0X0C,0X1C,0XE7,0X8E,0X30,0X07,0X8F,0X00,0X3C,0X00, 0X1F,0XF8,0X7F,0X8C,0X1C,0XE3,0XFE,0X30,0X03,0XFE,0X1F,0XF8,0X00,0X1F,0XE0,0X3F, 0X8C,0X18,0XC1,0XF8,0X30,0X00,0XF8,0X1F,0XE0,0X00,0X00,0X00,0X00,0X00,0X00,0X00, 0X00,0X00,0X00,0X00,0X00,0X00,0X00,0X00,0X00,0X00,0X00,0X00,0X00,0X00,0X00,0X00, 0X00,0X00,0X00,0X00,]), 98, 20, 1)
+    oled.Bitmap(16,20,logoImg,98,20,1)
     oled.show()
+    del logoImg;gc.collect()
     Quit = Core.SharedVar.LoadQuit()
     Quit.value = False
-    _thread.start_new_thread(LoadWait,(Quit,"None",False))
+    Quit.text = False
+    _thread.start_new_thread(LoadWait,(Quit,Quit,False))
     try:
         if wifi.connectWiFi(ssid, password):
             ntptime.settime(8,"time.windows.com")
             time.sleep(2)
             Quit.value = True
             return True
-        else:
-            Quit.value = True
-            return False
-    except: 
+    except:
         time.sleep(2)
-        Quit.value = True
-        return False
-
+    Quit.value = True
+    return False
 def WifiPages():
-    DayLight.VastSea.Off()
+    oled.fill(0)
     wifiNum = DayLight.ListOptions(Core.Data.Get("list", "wifiName"), False, eval("[/Language('请选择配置')/]"))
     oled.show()
     ConfigureWLAN((Core.Data.Get("list", "wifiName")[wifiNum]), (Core.Data.Get("list", "wifiPassword")[wifiNum]))
@@ -50,109 +55,25 @@ def CloudNotification():
     DayLight.App.Style1(eval("[/Language('云端通知')/]"))
     Quit = Core.SharedVar.LoadQuit()
     Quit.value = False
-    _thread.start_new_thread(LoadWait, (Quit, eval("[/Language('请稍等')/]"), False))
+    Quit.text = eval("[/Language('请稍等')/]")
+    _thread.start_new_thread(LoadWait, (Quit, Quit, False))
     oled.show()
     try:
-        notifications = Radient.Get(source + '/Notifications.sros')[1].split(';')
-        print(notifications)
-    except IndexError as e:
+        notifications = Radient.Get(ram.GetItem("source") + '/Notifications.sros')[1].split(';')
         Quit.value = True
+    except IndexError as e:
         print(e)
+        Quit.value = True
         return
-    Quit.value = True
     DayLight.App.Style1(eval("[/Language('云端通知')/]"))
     oled.DispChar(notifications[0], 5, 18)
     oled.DispChar(notifications[1], 5, 32)
     oled.DispChar(notifications[2], 5, 45)
     oled.show()
     while not button_a.is_pressed():pass
-    del notifications
     return
 
-def HS_CPU():
-    oled.fill(0)
-    oled.DispChar("目前频率:{} MHZ".format(str(machine.freq()/1000000)),0,16)
-    oled.DispChar("MPU - ESP32",0,0)
-    oled.show()
-    while True:
-        if button_a.is_pressed():return
-def HS_Ram():
-    while not button_a.is_pressed():
-        oled.fill(0)
-        oled.DispChar("Ram - total:520kb",0,0)
-        oled.DispChar(f"内存可用:{str(gc.mem_free())} Bytes",0,16)
-        oled.DispChar("触摸键释放内存",0,32)
-        oled.show()
-        if eval("[/GetButtonExpr('python')/]"):Collect()
-    return 0
-def HS_Flash():
-    fileSystemFree=os.statvfs("/")[3] * os.statvfs("/")[1]
-    oled.fill(0)
-    oled.DispChar("Flash - total: 8MB",5,0)
-    oled.DispChar("可用:{} MB".format(fileSystemFree/81920),5,16)
-    DayLight.ProgressBoxMove(5,32,100,10,((100 - 0) / (8 - 0)) * ((fileSystemFree / 81920) - 0) + 0)
-    oled.show()
-    while not button_a.is_pressed():
-        if button_a.is_pressed():
-            del fileSystemFree
-            gc.collect()    
-            return 0
-def PeripheralPanel():
-    PeripheralList = ["引脚控制"]
-    PeripheralPin = ["Pin.P0","Pin.P1","Pin.P2","Pin.P3","Pin.P13","Pin.P14","Pin.P15","Pin.P16"]
-    while not button_a.is_pressed():
-        options = DayLight.Select.Style4(PeripheralList, False, "控制面板")
-        if options == 0:
-            DayLight.VastSea.Transition() 
-            options = DayLight.Select.Style4(PeripheralPin, False, "选择引脚")
-            if options!=None:
-                DayLight.VastSea.Transition() 
-                selsetPin=PeripheralPin[options]
-            else: 
-                DayLight.VastSea.Transition(False)
-                return
-            SS=DayLight.Select.Style4(["输出","输入"], False, "选择模式")
-            if SS == 0:
-                while not button_a.is_pressed():
-                    oled.fill(0)
-                    oled.DispChar("引脚 {} 的值为".format(selsetPin),5,0)
-                    PIN=eval("Pin({},Pin.IN)".format(selsetPin))
-                    oled.DispChar(str(PIN.value()),5,16)
-                    oled.show()
-                DayLight.VastSea.Transition(False)
-                return
-            elif SS == 1:
-                while not button_a.is_pressed():
-                    val=DayLight.Select.Style4(["高","低"], False, "选择{}电平".format(selsetPin))
-                    if val != None:
-                        DayLight.VastSea.Transition()
-                        PIN=eval("Pin({},Pin.OUT)".format(selsetPin))
-                        if val == 0:PIN.on()
-                        else:PIN.off()
-                    else:
-                        DayLight.VastSea.Transition(False)
-                        return
-                return 
-        else:
-            DayLight.VastSea.Transition(False)
-            return
 
-def EquipmentPanel():
-    ListOperation = {
-    0: HS_CPU,
-    1: HS_Ram,
-    2: HS_Flash,
-    3: PeripheralPanel
-    }
-    hardware=["CPU","RAM","Flash","外设控制"]
-    while not button_a.is_pressed():
-        options = DayLight.Select.Style4(hardware, False, "设备面板")
-        if options != None:
-            DayLight.VastSea.Transition()
-            ListOperation.get(options)()
-            DayLight.VastSea.Transition(False)
-        else:
-            return
         
 def Home():
     oled.fill(0)
@@ -195,7 +116,9 @@ def HomeomePlugInSet():
 def About():
     oled.fill(0)
     while not button_a.is_pressed():
-        oled.Bitmap(16, 15, bytearray([0X00,0X00,0X00,0X00,0X00,0X00,0X00,0X00,0X00,0X00,0X00,0X00,0X00,0X00,0X00,0X00, 0X00,0X00,0X00,0X00,0X00,0X00,0X00,0X00,0X00,0X00,0X00,0X3C,0X00,0X00,0X00,0X30, 0X00,0X00,0X00,0X70,0X00,0X78,0X00,0X03,0XFE,0X00,0X00,0X00,0X70,0X00,0X00,0X03, 0XFE,0X03,0XFE,0X00,0X07,0XFC,0X00,0X00,0X00,0X30,0X00,0X00,0X07,0X8F,0X07,0XFE, 0X00,0X06,0X00,0X00,0X00,0X00,0X00,0X00,0X00,0X0E,0X03,0X86,0X00,0X00,0X06,0X00, 0X0E,0X03,0XE0,0X20,0X38,0X01,0X8C,0X01,0X8E,0X00,0X00,0X0E,0X00,0X3F,0X87,0XF8, 0X71,0XFE,0X0F,0X98,0X00,0XCE,0X00,0X00,0X0F,0X00,0X7B,0XC7,0XFC,0X71,0XFF,0X1F, 0X98,0X00,0XCE,0X00,0X00,0X07,0XF0,0X60,0XCE,0X0C,0X63,0X83,0X18,0X18,0X00,0XC7, 0XF0,0X00,0X03,0XFC,0XE0,0XCE,0X0C,0X63,0X03,0X38,0X18,0X00,0XC3,0XFC,0X00,0X00, 0X1C,0XFF,0XCE,0X0C,0X63,0X03,0X38,0X18,0X00,0XC0,0X1C,0X00,0X00,0X0C,0XFF,0XCC, 0X0C,0X67,0X03,0X30,0X18,0X00,0XC0,0X0C,0X00,0X00,0X0C,0XC0,0X0C,0X0C,0X67,0X03, 0X30,0X0C,0X01,0XC0,0X0C,0X00,0X00,0X1C,0XC0,0X0C,0X1C,0XE7,0X07,0X30,0X0E,0X03, 0X80,0X1C,0X00,0X00,0X3C,0XE0,0X0C,0X1C,0XE7,0X8E,0X30,0X07,0X8F,0X00,0X3C,0X00, 0X1F,0XF8,0X7F,0X8C,0X1C,0XE3,0XFE,0X30,0X03,0XFE,0X1F,0XF8,0X00,0X1F,0XE0,0X3F, 0X8C,0X18,0XC1,0XF8,0X30,0X00,0XF8,0X1F,0XE0,0X00,0X00,0X00,0X00,0X00,0X00,0X00, 0X00,0X00,0X00,0X00,0X00,0X00,0X00,0X00,0X00,0X00,0X00,0X00,0X00,0X00,0X00,0X00, 0X00,0X00,0X00,0X00,]), 98, 20, 1)
+        logoImg = None
+        with open("/SeniorOS/data/SeniorOS.logo",'rb') as f:logoImg = f.read()
+        oled.Bitmap(16, 15, logoImg, 98, 20, 1)
         version = 'V' + eval("[/Const('version')/]")
         DayLight.Text(version, DayLight.AutoCenter(version), 40, 2)
         oled.show()
@@ -265,10 +188,10 @@ def ConnectWiFiMode():
             DayLight.VastSea.Transition(False)
             return
 
-def LoadWait(WhetherToQuit:Core.SharedVar.LoadQuit, text:str="None", fill:bool=False):
+def LoadWait(WhetherToQuit:Core.SharedVar.LoadQuit, text:Core.ShareVar.LoadQuit=False, fill:bool=False):
     if fill:oled.fill(0)
     while not WhetherToQuit:
-        if text != "None":DayLight.Text(text, DayLight.AutoCenter(text), 28, 2)
+        if text != False:DayLight.Text(text, DayLight.AutoCenter(text), 28, 2)
         DayLight.VastSea.SeniorMove.Line(0,63,0,63,0,63,128,63,False)
         DayLight.VastSea.SeniorMove.Line(0,63,128,63,128,63,128,63,False)
         oled.show()

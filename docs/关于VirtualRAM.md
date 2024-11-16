@@ -1,4 +1,4 @@
-# 关于DiskRam(Virtual Memory)
+# 关于DiskRam(已改名VirtualRAM)
 ## 简介
 DiskRam是一个基于I/O文件读写的虚拟内存库，它将变量信息存储于文件中，通过文件读写实现内存操作。它支持Python3.6+，并且可以跨平台使用。
 
@@ -24,6 +24,8 @@ varclass为变量类型，var为变量名，value为变量值，length为数组�
 #### Collect(self)
 删除垃圾数据
 
+#### Delete(self,var)
+删除变量
 ## 使用
 
 ### 初始化DiskRam
@@ -54,3 +56,9 @@ diskRam.GetItem("varname", offset = n)
 ```python
 diskRam.Collect()
 ```
+
+### 删除变量
+```python
+diskRam.Delete("varname")
+```
+

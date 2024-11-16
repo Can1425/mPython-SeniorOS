@@ -13,8 +13,11 @@ class SharedVar:
     class LoadQuit:
         def __init__(self):
             self.value = None
+            self.text = None
         def __bool__(self):
             return bool(self.value)
+        def __str__(self):
+            return str(self.text)
 
 class DataCtrl:
     # 初始化函数，传入文件夹路径
