@@ -24,7 +24,7 @@ def EquipmentPanel():
     gc.collect()
 def ConfigureWLAN(ssid, password):
     logoImg = None
-    with open("/SeniorOS/data/SeniorOS.logo",'rb') as f:logoImg = f.read()
+    with open("/SeniorOS/data/SeniorOS.logo",'rb') as f:logoImg = bytearray(f.read())
     oled.fill(0)
     oled.Bitmap(16,20,logoImg,98,20,1)
     oled.show()
@@ -117,7 +117,7 @@ def About():
     oled.fill(0)
     while not button_a.is_pressed():
         logoImg = None
-        with open("/SeniorOS/data/SeniorOS.logo",'rb') as f:logoImg = f.read()
+        with open("/SeniorOS/data/SeniorOS.logo",'rb') as f:logoImg = bytearray(f.read())
         oled.Bitmap(16, 15, logoImg, 98, 20, 1)
         version = 'V' + eval("[/Const('version')/]")
         DayLight.Text(version, DayLight.AutoCenter(version), 40, 2)
@@ -222,7 +222,8 @@ def ShutDown():
         return
 def WiFiConfig():
     IP,netmask,gateway,DNS = wifi.sta.ifconfig()
-    FTReader.Textreader('是否连接: ' + "是" if wifi.sta.isconnected() else "否" + "\n" + "状态码: "  + str(wifi.sta.status()) + '\n' + 'IP: ' + IP +'\n' + 'Netmask: ' + netmask + '\n' + 'DNS: ' + DNS + '\n' + 'Gateway: ' + gateway).Main()
+    FTReader.text2File(str('是否连接: ' + "是" if wifi.sta.isconnected() else "否" + "\n" + "状态码: "  + str(wifi.sta.status()) + '\n' + 'IP: ' + IP +'\n' + 'Netmask: ' + netmask + '\n' + 'DNS: ' + DNS + '\n' + 'Gateway: ' + gateway),"/SeniorOS/data/wifiConfig.conf")
+    FTReader.Textreader("/SeniorOS/data/wifiConfig.conf").Main()
 
 def DeviceID():
     oled.fill(0)

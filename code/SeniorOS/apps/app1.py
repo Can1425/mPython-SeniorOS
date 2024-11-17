@@ -7,7 +7,6 @@ import gc
 import os
 import _thread,sys
 import SeniorOS.lib.log_manager as LogManager
-#import ModRunner
 source = "http://" + Core.Data.Get("text", "radienPluginsSource")
 Log = LogManager.Log
 

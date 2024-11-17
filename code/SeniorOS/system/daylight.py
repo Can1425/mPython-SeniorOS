@@ -101,7 +101,7 @@ class Select:
             time.sleep_ms(int(eval("[/Const('interval')/]")))
 
     @staticmethod        
-    def Style4(dispContent:list, window:False, appTitle:str = False, x = 5, images = None):
+    def Style4(dispContent:list, window:bool = False, appTitle:str = False, x = 5, images = None):
         lendispcontext = len(dispContent)
         maxdispcontextindex = lendispcontext - 1
         listNum = 0

@@ -75,26 +75,26 @@ class picture:
     #DiskManager_images
     Flash = img.Logo(3)
     EXIT = img.Logo(5)
-'''
-class FileReader:
-    def __init__(self, path):
-        self.path = path
-    def readFile(self):
-        with open(self.path, "r") as f:
-            f.seek(0)
-            while not button_a.is_pressed():
-                oled.fill(0)
-'''
+def text2File(text,filepath="tmp.txt"):
+    with open(filepath,"w") as f:
+        f.write(text)
+    return 0
 class Textreader:
-    def __init__(self, text, splitCfg="\n"):
-        self.text = text.split(splitCfg)
+    def __init__(self, filepath):
+        self.file = open(filepath)
+        self.len = 0
+        while True:
+            line = self.file.readline()
+            if line == '':break
+            self.len += 1
     def showText(self,lines=0,offset=0,y=0):
+        text = self.file.readlines([lines,lines+1,lines+2])
         for i in [0,1,2]:
-            try:oled.DispChar(self.text[i+lines],0-offset,i*16+y)
+            try:oled.DispChar(text[i],0-offset,i*16+y)
             except:continue
         return
     def text_info(self,info):
-        if info:return int(len(self.text)/3)
+        if info:return int(len//3)
         else:return len(self.text)%3
     
     def test2(self):
@@ -102,26 +102,26 @@ class Textreader:
         Animations.ClearFromLeftSide()
             
     def Main(self):
-        page_num=self.text_info(True)+self.text_info(False)
+        page_num=self.len
         n=0;offset=0
         while not (touchpad_t.is_pressed() or touchpad_h.is_pressed()):
             Core.FullCollect()
             oled.fill(0)
             self.showText(n,offset)
             oled.DispChar("<PY",0,48);oled.DispChar("ON>",104,48)
-            oled.DispChar("{}/{}".format(int(n/3)+1,int(page_num)+1),52,48)
+            oled.DispChar("{}/{}".format(n+1,page_num+1),52,48)
             oled.hline(0,48,128,1)
             oled.show()
             while not (touchpad_t.is_pressed() or touchpad_h.is_pressed()):
                 if touchpad_p.is_pressed() or touchpad_y.is_pressed():
+                    if n-1<=0:n=0
+                    else:n-=1
                     time.sleep_ms(100)
-                    if n-3<0:n=0
-                    else:n-=3
                     break
                 elif touchpad_n.is_pressed() or touchpad_o.is_pressed():
                     time.sleep_ms(100)
-                    if n+3>page_num*3:n=page_num*3
-                    else:n+=3
+                    if n+1>page_num:n=page_num
+                    else:n+=1
                     break
                 if button_b.is_pressed():
                     offset+=8

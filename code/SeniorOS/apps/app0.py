@@ -1,5 +1,5 @@
 from SeniorOS.lib.devlib import *
-import SeniorOS.system.core as Core
+import SeniorOS.system.hardware_settings as HardwareSettings
 import SeniorOS.system.daylight as DayLight
 import time
 
@@ -32,14 +32,14 @@ Settings1 = {
 
 Settings2 = {
     0: Pages.Collect,
-    1: Pages.HS_Ram,
-    2: Pages.HS_Flash,
+    1: HardwareSettings.HS_Ram,
+    2: HardwareSettings.HS_Flash,
 }
 
 Settings3 = {
     0: Pages.About,
     1: Pages.About,
-    2: Pages.HS_CPU,
+    2: HardwareSettings.HS_CPU,
     3: Pages.DeviceID,
 }
 
