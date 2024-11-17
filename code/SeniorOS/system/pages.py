@@ -1,6 +1,6 @@
 import gc
 from SeniorOS.lib.devlib import *;gc.collect()
-import SeniorOS.system.DayLight as DayLight
+import SeniorOS.system.daylight as DayLight
 import SeniorOS.system.core as Core
 import SeniorOS.system.ftreader as FTReader
 import SeniorOS.system.radient as Radient
